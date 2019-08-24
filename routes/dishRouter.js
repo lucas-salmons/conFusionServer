@@ -76,7 +76,7 @@ dishRouter.route('/:dishId')
             }, (err) => next(err))
             .catch((err) => next(err))
     });
-//comments
+
 dishRouter.route('/:dishId/comments')
     .get((req, res, next) => {
         Dishes.findById(req.params.dishId)
