@@ -98,7 +98,7 @@ dishRouter.route('/:dishId/comments')
             }, (err) => next(err))
             .catch((err) => next(err));
     })
-    .post(authenticate.verifyUser, (req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => {//any verified user may comment on a dish
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null) {
@@ -123,8 +123,7 @@ dishRouter.route('/:dishId/comments')
         res.statusCode = 403;
         res.end('PUT operation not supported on /dishes/' + req.params.dishId + '/comments');
     })
-    //only admins can delete all comments
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {//only admins can delete all comments
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null) {
@@ -177,14 +176,13 @@ dishRouter.route('/:dishId/comments/:commentId')
     .put(authenticate.verifyUser, (req, res, next) => {
         Dishes.findById(req.params.dishId)
             .then((dish) => {
-                if (dish != null && dish.comments.id(req.params.commentId) != null) {
-                    //verify author to allow update comment
-                    if (dish.comments.id(req.params.commentId).author.equals(req.user._id)) {
+                if (dish != null && dish.comments.id(req.params.commentId) != null) {//verify author to allow update comment
+                    if (dish.comments.id(req.params.commentId).author.equals(req.user._id)) {//check the comment (from url) that author equals the user id
                         if (req.body.rating) {
-                            dish.comments.id(req.params.commentId).rating = req.body.rating;
+                            dish.comments.id(req.params.commentId).rating = req.body.rating;//set the rating field to the 'rating' from the json body
                         }
                         if (req.body.comment) {
-                            dish.comments.id(req.params.commentId).comment = req.body.comment;
+                            dish.comments.id(req.params.commentId).comment = req.body.comment;//set the comment field to the 'comment' from the json body
                         }
                         dish.save()
                             .then((dish) => {
@@ -213,11 +211,12 @@ dishRouter.route('/:dishId/comments/:commentId')
             }, (err) => next(err))
             .catch((err) => next(err));
     })
-    .delete(authenticate.verifyUser, (req, res, next) => {
+    .delete(authenticate.verifyUser, (req, res, next) => {//auth verifyUser as admin priv are not necessary for ..comments/:commentId endpoint
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null && dish.comments.id(req.params.commentId) != null) {
-                    if (dish.comments.id(req.params.commentId).author.equals(req.user._id)) {
+                    if (dish.comments.id(req.params.commentId).author.equals(req.user._id)) {//identical check present in .put end (verify author)
+                        //remove the found comment then save comments array
                         dish.comments.id(req.params.commentId).remove();
                         dish.save()
                             .then((dish) => {
@@ -227,7 +226,7 @@ dishRouter.route('/:dishId/comments/:commentId')
                             }, (err) => next(err));
                     }
                     else {
-                        //user did not right comment
+                        //user did not write the  comment
                         var err = new Error('did not write comment!');
                         err.status = 403;
                         return next(err);
